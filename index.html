@@ -273,4 +273,158 @@
                 explanation: "Module 26.4 states you must record information about callers whose calls ended prematurely and share it with the Incident Commander and agencies. Re-contacting may be unsafe."
             },
             {
-                id
+                id: 5,
+                module: "27.1",
+                question: "Under the 'Run Hide Tell' guidance, what is the primary instruction if it is safe to do so?",
+                options: [
+                    "Stay where you are and wait for help",
+                    "Run to a place of safety",
+                    "Try to negotiate with the attackers",
+                    "Film the incident on your phone"
+                ],
+                correct: 1,
+                explanation: "Module 27.1 states: Tell people at risk during terrorist attacks to run to a place of safety, if it is safe to do so."
+            },
+            {
+                id: 6,
+                module: "27.2",
+                question: "If people are unable to run to a place of safety, what should they be told to do?",
+                options: [
+                    "Confront the attackers",
+                    "Hide from attackers",
+                    "Play dead",
+                    "Scream for help"
+                ],
+                correct: 1,
+                explanation: "Module 27.2 states: Tell people who are unable to run and who are at risk during a terrorist attack to hide from attackers."
+            },
+            {
+                id: 7,
+                module: "27.3",
+                question: "What specific physical security advice should be given to people who are hiding?",
+                options: [
+                    "Leave the door open slightly to hear what is happening",
+                    "Lock and barricade themselves in, if it is safe to do so",
+                    "Stand by the window to signal for help",
+                    "Block the door with their own bodies"
+                ],
+                correct: 1,
+                explanation: "Module 27.3 requires telling people to lock and barricade themselves in, if it is safe for them to do so."
+            },
+            {
+                id: 8,
+                module: "27.4",
+                question: "What instructions regarding mobile phones must be given to people hiding from attackers?",
+                options: [
+                    "Turn the phone off completely",
+                    "Keep the line open on speakerphone",
+                    "Switch to silent and turn off vibrating alerts",
+                    "Use the flash to signal location"
+                ],
+                correct: 2,
+                explanation: "Module 27.4 states: Switch their mobile phone to silent and turn off vibrating alerts."
+            },
+            {
+                id: 9,
+                module: "27.5", // Re-added missing question
+                question: "What is the primary psychological advice to give people when emergency responders are approaching?",
+                options: [
+                    "Remain as calm as possible and follow instructions",
+                    "Wait until responders signal they are safe to approach",
+                    "Shout out their names to identify themselves",
+                    "Tell responders about all the injuries immediately"
+                ],
+                correct: 0,
+                explanation: "Module 27.5 states to encourage people at risk to remain as calm as possible and follow the instructions of police officers and other emergency responders."
+            },
+            {
+                id: 10,
+                module: "27.6",
+                question: "To avoid being mistaken for a threat, what should people do with their hands when approaching responders?",
+                options: [
+                    "Keep them in their pockets",
+                    "Hold their mobile phone up high",
+                    "Keep hands in view and avoid sudden movements",
+                    "Wave them frantically"
+                ],
+                correct: 2,
+                explanation: "Module 27.6: Encourage people at risk to avoid sudden movements and keep their hands in view of approaching responders."
+            },
+            {
+                id: 11,
+                module: "27.7",
+                question: "How long should you attempt to maintain contact with a caller at risk?",
+                options: [
+                    "For exactly 5 minutes",
+                    "Until the police arrive at the scene",
+                    "Until they have run to a place of safety or are in the care of responders",
+                    "Until the call queue becomes too busy"
+                ],
+                correct: 2,
+                explanation: "Module 27.7: Maintain contact with the caller until they... have run to a place of safety or are in the care of emergency responders."
+            },
+            {
+                id: 12,
+                module: "27.8",
+                question: "Why must you continually reassess situational awareness during the call?",
+                options: [
+                    "To ensure advice given to protect people is relevant and up to date",
+                    "To fill out the incident log correctly",
+                    "To pass the time while waiting for police",
+                    "To evaluate the caller's emotional state"
+                ],
+                correct: 0,
+                explanation: "Module 27.8: Continually reassess situational awareness to ensure advice given to protect people at risk... is relevant and up to date."
+            },
+            {
+                id: 13,
+                module: "27.9",
+                question: "What should be done with calls about people requiring medical advice during a terrorist attack?",
+                options: [
+                    "Provide first aid advice yourself immediately",
+                    "Tell them to wait for the fire service",
+                    "Redirect to the ambulance service as soon as possible",
+                    "Tell them no medical help is available"
+                ],
+                correct: 2,
+                explanation: "Module 27.9: Redirect to the ambulance service as soon as possible calls about people requiring medical advice."
+            }
+        ];
+
+        // App State
+        const CORRECT_PASSWORD = 'FireControl'; // Hardcoded assessment password (UPDATED)
+        let currentQuizQuestions; // Holds the shuffled version of questions
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswers = [];
+        let userName = '';
+        let completionTime = ''; // New state for completion timestamp
+
+        // DOM Elements
+        const screens = {
+            start: document.getElementById('start-screen'),
+            quiz: document.getElementById('quiz-screen'),
+            results: document.getElementById('results-screen')
+        };
+        
+        const ui = {
+            questionText: document.getElementById('question-text'),
+            optionsContainer: document.getElementById('options-container'),
+            moduleTag: document.getElementById('module-tag'),
+            progressBar: document.getElementById('progress-bar'),
+            currentQ: document.getElementById('current-q'),
+            totalQ: document.getElementById('total-q'),
+            progressContainer: document.getElementById('progress-container'),
+            feedbackArea: document.getElementById('feedback-area'),
+            feedbackTitle: document.getElementById('feedback-title'),
+            feedbackText: document.getElementById('feedback-text'),
+            nextBtn: document.getElementById('next-btn'),
+            userNameInput: document.getElementById('user-name'),
+            passwordInput: document.getElementById('assessment-password'), // New password input
+            nameError: document.getElementById('name-error'),
+            resultsUserName: document.getElementById('results-user-name'),
+            pdfContent: document.getElementById('pdf-content'),
+            pdfTimestamp: document.getElementById('pdf-timestamp'),
+            breakdownList: document.getElementById('breakdown-list'),
+            headerLogo: document.getElementById('header-logo'),
+            pdfLogo: document.getElementById('
