@@ -107,7 +107,8 @@
                     </div>
                 </div>
 
-                <button onclick="startQuiz()" class="bg-suffolk-red hover-bg-suffolk-red text-white font-bold py-4 px-12 rounded shadow-lg transition-all transform hover:scale-105 flex items-center mx-auto">
+                <!-- ADDED ID for Event Listener -->
+                <button id="start-btn" class="bg-suffolk-red hover-bg-suffolk-red text-white font-bold py-4 px-12 rounded shadow-lg transition-all transform hover:scale-105 flex items-center mx-auto">
                     Begin Assessment <i class="fas fa-chevron-right ml-3"></i>
                 </button>
             </div>
@@ -427,4 +428,463 @@
             pdfTimestamp: document.getElementById('pdf-timestamp'),
             breakdownList: document.getElementById('breakdown-list'),
             headerLogo: document.getElementById('header-logo'),
-            pdfLogo: document.getElementById('
+            pdfLogo: document.getElementById('pdf-logo'),
+            pdfSummaryInfo: document.getElementById('pdf-summary-info'), // Reference to the summary section
+            // New references for the question counter display
+            currentQDisplay: document.getElementById('current-q-display'),
+            totalQDisplay: document.getElementById('total-q-display'),
+            startBtn: document.getElementById('start-btn') // Added reference to the start button
+        };
+        
+        // --- Initialization and Crest Fix ---
+        
+        // Custom function to ensure crest loads from external URL
+        function checkLocalCrest() {
+            const externalCrestPath = 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f1/Suffolk_Fire_and_Rescue_Service_crest.svg/2560px-Suffolk_Fire_and_Rescue_Service_crest.svg.png';
+            
+            // Set the source directly for on-screen elements
+            ui.headerLogo.src = externalCrestPath;
+            // PDF logo element was removed from HTML
+        }
+
+        /**
+         * Shuffles an array of options and returns the new index of the correct answer.
+         * FIX: Now tracks the correct answer by text value, ensuring correct index update.
+         * @param {Array} array - The options array.
+         * @param {number} correctIndex - The original index of the correct answer.
+         * @returns {number} The new index of the correct answer.
+         */
+        function shuffleOptions(array, correctIndex) {
+            // Store the text of the correct answer before shuffling
+            const correctAnswerText = array[correctIndex];
+
+            // Standard Fisher-Yates shuffle
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+
+            // Find the new index of the correct answer text
+            // This is the CRUCIAL fix to ensure validation works after shuffling.
+            return array.indexOf(correctAnswerText);
+        }
+
+
+        // --- Quiz Logic ---
+        
+        function startQuiz() {
+            // 1. Validate Name and Password
+            const enteredName = ui.userNameInput.value.trim();
+            const enteredPassword = ui.passwordInput.value.trim();
+            
+            // FIX: Convert both to lowercase for case-insensitive and robust comparison
+            const normalizedEnteredPassword = enteredPassword.toLowerCase();
+            const normalizedCorrectPassword = CORRECT_PASSWORD.toLowerCase();
+
+            // --- DEBUG LOG START ---
+            console.log("--- START ATTEMPT ---");
+            console.log(`Entered Name: "${enteredName}"`);
+            console.log(`Entered Password (Trimmed): "${enteredPassword}"`);
+            console.log(`Correct Password: "${CORRECT_PASSWORD}"`);
+            console.log(`Comparison: ${normalizedEnteredPassword === normalizedCorrectPassword}`);
+            // --- DEBUG LOG END ---
+
+            if (enteredName === "" || normalizedEnteredPassword !== normalizedCorrectPassword) {
+                ui.nameError.textContent = "Please enter your name and ensure the password is correct.";
+                ui.nameError.classList.remove('hidden');
+                
+                // Prioritize focusing on the missing/incorrect field
+                if (enteredName === "") {
+                    ui.userNameInput.focus();
+                } else {
+                    ui.passwordInput.focus();
+                }
+                
+                return;
+            }
+            
+            ui.nameError.classList.add('hidden');
+            userName = enteredName; // Store the name globally
+            
+            // 2. Initialize Quiz
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = [];
+            completionTime = ''; // Clear completion time
+
+            // NOTE: Must clone and reset questions to allow for re-shuffling on restart
+            currentQuizQuestions = JSON.parse(JSON.stringify(questions));
+            
+            // 3. UI Updates
+            screens.start.classList.add('hidden');
+            screens.quiz.classList.remove('hidden');
+            screens.quiz.classList.add('flex');
+            ui.progressContainer.classList.remove('hidden');
+            
+            // Set total question count
+            document.getElementById('total-q-display').textContent = currentQuizQuestions.length;
+            document.getElementById('total-q').textContent = currentQuizQuestions.length; // Also update the small counter on the right
+            
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = currentQuizQuestions[currentQuestionIndex];
+            
+            // SHUFFLE OPTIONS HERE - updates q.correct to the new index
+            q.correct = shuffleOptions(q.options, q.correct);
+            
+            // Reset UI
+            ui.feedbackArea.classList.add('hidden');
+            ui.optionsContainer.innerHTML = '';
+            ui.nextBtn.disabled = false;
+            
+            // Set Content
+            ui.questionText.textContent = q.question;
+            ui.moduleTag.textContent = `Module ${q.module}`;
+            
+            // FIX 1: Update Current Question Number Display
+            ui.currentQDisplay.textContent = currentQuestionIndex + 1; // Correctly updates the large question counter in the quiz screen
+            document.getElementById('current-q-display').textContent = currentQuestionIndex + 1; // Updates the banner counter
+            
+            // Update Progress Bar
+            const progress = ((currentQuestionIndex) / currentQuizQuestions.length) * 100;
+            ui.progressBar.style.width = `${progress}%`;
+
+            // Create Options
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = `option-card w-full text-left p-5 rounded-lg border border-slate-300 hover:border-suffolk-red hover:bg-red-50 transition-all duration-200 bg-white text-slate-700 font-medium shadow-sm`;
+                btn.innerHTML = `<div class="flex items-center"><div class="w-8 h-8 rounded bg-slate-100 text-slate-600 flex items-center justify-center mr-4 text-sm font-bold border border-slate-200">${String.fromCharCode(65 + index)}</div> ${opt}</div>`;
+                btn.onclick = () => checkAnswer(index, btn);
+                ui.optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIndex, btnElement) {
+            const q = currentQuizQuestions[currentQuestionIndex];
+            
+            // Validation now correctly uses the POST-SHUFFLE index stored in q.correct
+            const isCorrect = selectedIndex === q.correct; 
+            
+            // Disable all buttons
+            const allBtns = ui.optionsContainer.querySelectorAll('button');
+            allBtns.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.remove('hover:border-suffolk-red', 'hover:bg-red-50');
+                btn.classList.add('opacity-70', 'cursor-not-allowed');
+            });
+
+            // Highlight selected and correct
+            btnElement.classList.remove('opacity-70');
+            if (isCorrect) {
+                btnElement.classList.remove('border-slate-300');
+                btnElement.classList.add('border-green-600', 'bg-green-50', 'ring-1', 'ring-green-600');
+                btnElement.querySelector('.w-8').classList.add('bg-green-600', 'text-white', 'border-green-600');
+                score++;
+                showFeedback(true, q.explanation);
+            } else {
+                btnElement.classList.remove('border-slate-300');
+                btnElement.classList.add('border-red-600', 'bg-red-50', 'ring-1', 'ring-red-600');
+                btnElement.querySelector('.w-8').classList.add('bg-red-600', 'text-white', 'border-red-600');
+                
+                // Highlight the correct answer
+                const correctBtn = allBtns[q.correct];
+                correctBtn.classList.remove('opacity-70', 'border-slate-300');
+                correctBtn.classList.add('border-green-600', 'bg-green-50', 'ring-1', 'ring-green-600');
+                
+                showFeedback(false, q.explanation);
+            }
+
+            userAnswers.push({
+                question: q.question,
+                isCorrect: isCorrect,
+                module: q.module
+            });
+        }
+
+        function showFeedback(isCorrect, text) {
+            ui.feedbackArea.classList.remove('hidden');
+            ui.feedbackArea.classList.remove('border-green-500', 'border-red-500');
+            
+            if (isCorrect) {
+                ui.feedbackArea.classList.add('border-green-500');
+                ui.feedbackTitle.textContent = "Correct";
+                ui.feedbackTitle.className = "text-lg font-bold mb-2 text-green-700";
+            } else {
+                ui.feedbackArea.classList.add('border-red-500');
+                ui.feedbackTitle.textContent = "Incorrect";
+                ui.feedbackTitle.className = "text-lg font-bold mb-2 text-red-700";
+            }
+            
+            ui.feedbackText.textContent = text;
+
+            // Update button text if last question
+            if (currentQuestionIndex === currentQuizQuestions.length - 1) {
+                ui.nextBtn.innerHTML = `Finish Assessment <i class="fas fa-flag-checkered ml-2"></i>`;
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < currentQuizQuestions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            screens.quiz.classList.add('hidden');
+            screens.quiz.classList.remove('flex');
+            screens.results.classList.remove('hidden');
+            screens.results.classList.add('flex');
+            ui.progressContainer.classList.add('hidden');
+
+            // Set Completion Time
+            completionTime = new Date().toLocaleString('en-GB', { dateStyle: 'long', timeStyle: 'medium' });
+            ui.pdfTimestamp.textContent = `Completed: ${completionTime}`;
+
+            // Display User Name
+            ui.resultsUserName.textContent = userName;
+
+            const percentage = Math.round((score / currentQuizQuestions.length) * 100);
+            document.getElementById('final-score').textContent = `${percentage}%`;
+            document.getElementById('correct-count').textContent = score;
+            document.getElementById('total-count').textContent = currentQuizQuestions.length;
+
+            // Color code score
+            const iconDiv = document.getElementById('score-icon');
+            if (percentage >= 80) {
+                document.getElementById('final-score').classList.remove('text-suffolk-red', 'text-orange-500', 'text-red-600');
+                document.getElementById('final-score').classList.add('text-green-600');
+                iconDiv.innerHTML = '🏆';
+                iconDiv.className = "w-24 h-24 rounded-full flex items-center justify-center mb-6 text-5xl bg-green-50 border-4 border-green-200 fade-in mx-auto"; // Added mx-auto
+            } else if (percentage >= 50) {
+                document.getElementById('final-score').classList.remove('text-suffolk-red', 'text-green-600', 'text-red-600');
+                document.getElementById('final-score').classList.add('text-orange-500');
+                iconDiv.innerHTML = '📈';
+                iconDiv.className = "w-24 h-24 rounded-full flex items-center justify-center mb-6 text-5xl bg-orange-50 border-4 border-orange-200 fade-in mx-auto"; // Added mx-auto
+            } else {
+                document.getElementById('final-score').classList.remove('text-suffolk-red', 'text-green-600', 'text-orange-500');
+                document.getElementById('final-score').classList.add('text-red-600');
+                iconDiv.innerHTML = '⚠️';
+                iconDiv.className = "w-24 h-24 rounded-full flex items-center justify-center mb-6 text-5xl bg-red-50 border-4 border-red-200 fade-in mx-auto"; // Added mx-auto
+            }
+
+            // Generate Breakdown for Display
+            ui.breakdownList.innerHTML = '';
+            
+            userAnswers.forEach((ans, idx) => {
+                const item = document.createElement('div');
+                item.className = "flex items-start justify-between border-b border-slate-200 pb-3 last:border-0";
+                item.innerHTML = `
+                    <div>
+                        <span class="text-xs font-bold text-slate-400 block mb-1">Q${idx + 1} • Module ${ans.module}</span>
+                        <span class="text-slate-800 block text-sm font-medium leading-tight">${ans.question}</span>
+                    </div>
+                    <span class="${ans.isCorrect ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100'} font-bold text-xs px-2 py-1 rounded ml-3 whitespace-nowrap">
+                        ${ans.isCorrect ? '<i class="fas fa-check"></i> Pass' : '<i class="fas fa-times"></i> Fail'}
+                    </span>
+                `;
+                ui.breakdownList.appendChild(item);
+            });
+        }
+
+        function resetQuiz() {
+            screens.results.classList.add('hidden');
+            screens.results.classList.remove('flex');
+            ui.userNameInput.value = ''; // Clear name input on reset
+            ui.passwordInput.value = ''; // Clear password input on reset
+            ui.resultsUserName.textContent = '';
+            screens.start.classList.remove('hidden');
+        }
+
+        /**
+         * Generates a multi-page PDF certificate using jsPDF's built-in functions
+         * to draw text and calculated positions, avoiding html2canvas multi-page issues.
+         */
+        async function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+
+            // --- Configuration ---
+            const pdfWidth = 210; 
+            const margin = 20; // Side margins in mm
+            const contentWidth = pdfWidth - (margin * 2); // 170mm
+            const startY = 15; // Starting Y position for content
+            const maxPageHeight = 297 - (margin + 10); // Effective bottom boundary
+
+            // --- Helper Functions ---
+            let currentY = startY;
+            let pageNum = 0;
+            const centerX = pdfWidth / 2;
+            const suffolkRed = [185, 28, 28]; // #b91c1c
+
+            const addHeader = () => {
+                pageNum++;
+                
+                // Reset Y position for new page content
+                currentY = startY; 
+                
+                // 1. Draw Centered Title Block
+                
+                doc.setFontSize(16); 
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(suffolkRed[0], suffolkRed[1], suffolkRed[2]); 
+                doc.text("SUFFOLK FIRE & RESCUE SERVICE", centerX, currentY, null, null, 'center');
+                
+                currentY += 8;
+                doc.setFontSize(12);
+                doc.text("MTA Modules Assessment Certificate", centerX, currentY, null, null, 'center');
+                
+                // 2. Completion Details Block (Centered)
+                doc.setTextColor(0, 0, 0); 
+                currentY += 8;
+
+                doc.setFontSize(11);
+                doc.setFont("helvetica", "normal");
+                
+                const traineeLabel = `Trainee: ${userName}`;
+                const dateLabel = `Date: ${completionTime}`;
+
+                doc.text(traineeLabel, centerX, currentY, null, null, 'center');
+                currentY += 6;
+                doc.text(dateLabel, centerX, currentY, null, null, 'center');
+                
+                currentY += 8; // Spacing after block
+
+                // Separator line (Red accent)
+                doc.setDrawColor(suffolkRed[0], suffolkRed[1], suffolkRed[2]); 
+                doc.setLineWidth(0.8);
+                doc.line(margin, currentY, pdfWidth - margin, currentY); 
+                doc.setDrawColor(0, 0, 0); // Reset line color
+                currentY += 8; // Spacing after line
+                
+                // Page Number (remains right-aligned)
+                doc.setFontSize(10);
+                doc.text(`Page ${pageNum}`, pdfWidth - margin, 297 - 10, null, null, 'right');
+            };
+
+            const checkPageBreak = (spaceNeeded) => {
+                if (currentY + spaceNeeded > maxPageHeight) {
+                    doc.addPage();
+                    addHeader();
+                }
+            };
+            
+            // --- Content Generation (Summary - Page 1) ---
+            addHeader(); 
+
+            // Score Summary 
+            doc.setFontSize(14); 
+            doc.setFont("helvetica", "bold");
+            doc.text("Assessment Summary:", margin, currentY);
+
+            currentY += 8;
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "normal");
+            const totalQuestions = currentQuizQuestions.length;
+            const correctCount = score;
+            const percentage = Math.round((score / totalQuestions) * 100);
+            
+            // Set final score color based on percentage
+            let finalScoreColor;
+            if (percentage >= 80) { finalScoreColor = [0, 128, 0]; } // Green
+            else if (percentage >= 50) { finalScoreColor = [255, 165, 0]; } // Orange
+            else { finalScoreColor = [255, 0, 0]; } // Red
+
+            doc.text(`Trainee: ${userName}`, margin, currentY); currentY += 6;
+            doc.text(`Total Questions: ${totalQuestions}`, margin, currentY); currentY += 6;
+            doc.text(`Correct Answers: ${correctCount}`, margin, currentY); currentY += 6;
+            
+            doc.setFont("helvetica", "bold");
+            doc.text(`Final Score:`, margin, currentY);
+            doc.setTextColor(finalScoreColor[0], finalScoreColor[1], finalScoreColor[2]);
+            doc.text(`${percentage}%`, margin + 30, currentY); 
+            doc.setTextColor(0, 0, 0); // Reset color
+            doc.setFont("helvetica", "normal");
+            currentY += 12;
+            
+            // Start Breakdown
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.text("Detailed Module Breakdown:", margin, currentY); currentY += 8; 
+            
+            doc.setLineWidth(0.1);
+            doc.line(margin, currentY, pdfWidth - margin, currentY); currentY += 5; 
+            
+            // Breakdown Header
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "bold");
+            doc.text("Q#", margin + 2, currentY);
+            doc.text("Module", margin + 17, currentY);
+            doc.text("Question Text", margin + 40, currentY);
+            doc.text("Result", pdfWidth - margin, currentY, null, null, 'right');
+            currentY += 6; 
+            doc.line(margin, currentY, pdfWidth - margin, currentY); currentY += 4; 
+
+            // --- Detailed Breakdown (Multi-page handling) ---
+            
+            userAnswers.forEach((ans, idx) => {
+                const questionText = ans.question;
+                
+                doc.setFontSize(10); 
+                doc.setFont("helvetica", "normal");
+
+                // Content width for question text is 170 (total) - 65 (columns) = 105mm used here
+                const textColWidth = contentWidth - 65; 
+                const splitText = doc.splitTextToSize(questionText, textColWidth); 
+                
+                // Height calculation: 10pt font with generous line spacing (5mm per line)
+                const textLineHeight = 5; 
+                const textHeight = splitText.length * textLineHeight; 
+                const itemVerticalPadding = 3; // Padding above text
+                const itemBottomSpace = 4; // Space below the separator line
+                const spaceNeeded = textHeight + itemVerticalPadding + itemBottomSpace; 
+
+                checkPageBreak(spaceNeeded); 
+
+                // Print Q# and Module (using itemVerticalPadding + line height / 2 for visual center)
+                const textY = currentY + itemVerticalPadding + (textLineHeight / 2);
+
+                doc.text(`${idx + 1}`, margin + 2, textY); 
+                doc.text(ans.module, margin + 17, textY); 
+
+                // Print Question Text (multi-line)
+                doc.text(splitText, margin + 40, currentY + itemVerticalPadding);
+                
+                // Print Result (one line)
+                const resultText = ans.isCorrect ? "PASS" : "FAIL";
+                const resultColor = ans.isCorrect ? [0, 128, 0] : [255, 0, 0]; 
+                doc.setTextColor(resultColor[0], resultColor[1], resultColor[2]);
+                doc.setFont("helvetica", "bold");
+                doc.text(resultText, pdfWidth - margin, textY, null, null, 'right'); 
+                doc.setTextColor(0, 0, 0); // Reset color
+                doc.setFont("helvetica", "normal");
+
+                // Update Y position (must account for text height)
+                currentY += textHeight + itemVerticalPadding; 
+
+                doc.setLineWidth(0.1);
+                doc.line(margin, currentY, pdfWidth - margin, currentY); // Separator line for questions
+                currentY += itemBottomSpace; // Space below separator line for next item
+            });
+            
+            // 6. Define filename and save
+            const sanitizedUserName = userName.replace(/[^a-z0-9]/gi, '_');
+            const filename = `MTA_Assessment_${sanitizedUserName}_${new Date().toISOString().slice(0, 10)}.pdf`;
+            doc.save(filename);
+        }
+
+        // --- FINAL BINDING ---
+        // Attaches event listeners after the DOM and functions are defined
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLocalCrest();
+            if (ui.startBtn) {
+                ui.startBtn.addEventListener('click', startQuiz);
+            }
+        });
+    </script>
+</body>
+</html>
