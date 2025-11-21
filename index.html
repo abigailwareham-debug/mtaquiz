@@ -556,7 +556,8 @@
             q.options.forEach((opt, index) => {
                 const btn = document.createElement('button');
                 btn.className = `option-card w-full text-left p-5 rounded-lg border border-slate-300 hover:border-suffolk-red hover:bg-red-50 transition-all duration-200 bg-white text-slate-700 font-medium shadow-sm`;
-                btn.innerHTML = `<div class="flex items-center"><div class="w-8 h-8 rounded bg-slate-100 text-slate-600 flex items-center justify-center mr-4 text-sm font-bold border border-slate-200">${String.fromCharCode(65 + index)}</div> ${opt}</div>`;
+                // Added option-indicator class for robust selection
+                btn.innerHTML = `<div class="flex items-center"><div class="w-8 h-8 rounded bg-slate-100 text-slate-600 flex items-center justify-center mr-4 text-sm font-bold border border-slate-200 option-indicator">${String.fromCharCode(65 + index)}</div> ${opt}</div>`;
                 btn.onclick = () => checkAnswer(index, btn);
                 ui.optionsContainer.appendChild(btn);
             });
@@ -581,18 +582,26 @@
             if (isCorrect) {
                 btnElement.classList.remove('border-slate-300');
                 btnElement.classList.add('border-green-600', 'bg-green-50', 'ring-1', 'ring-green-600');
-                btnElement.querySelector('.w-8').classList.add('bg-green-600', 'text-white', 'border-green-600');
+                // FIXED ERROR: Use .option-indicator class for robust selection
+                btnElement.querySelector('.option-indicator').classList.add('bg-green-600', 'text-white', 'border-green-600');
                 score++;
                 showFeedback(true, q.explanation);
             } else {
                 btnElement.classList.remove('border-slate-300');
                 btnElement.classList.add('border-red-600', 'bg-red-50', 'ring-1', 'ring-red-600');
-                btnElement.querySelector('.w-8').classList.add('bg-red-600', 'text-white', 'border-red-600');
+                // FIXED ERROR: Use .option-indicator class for robust selection
+                btnElement.querySelector('.option-indicator').classList.add('bg-red-600', 'text-white', 'border-red-600');
                 
                 // Highlight the correct answer
                 const correctBtn = allBtns[q.correct];
                 correctBtn.classList.remove('opacity-70', 'border-slate-300');
                 correctBtn.classList.add('border-green-600', 'bg-green-50', 'ring-1', 'ring-green-600');
+                
+                // FIXED ERROR: Use .option-indicator class for robust selection
+                const correctIndicator = correctBtn.querySelector('.option-indicator');
+                if (correctIndicator) {
+                    correctIndicator.classList.add('bg-green-600', 'text-white', 'border-green-600');
+                }
                 
                 showFeedback(false, q.explanation);
             }
@@ -768,7 +777,9 @@
             };
 
             const checkPageBreak = (spaceNeeded) => {
-                if (currentY + spaceNeeded > maxPageHeight) {
+                // Signature block requires 30mm of space. Ensure the buffer is big enough.
+                const signatureBlockHeight = 30;
+                if (currentY + spaceNeeded + signatureBlockHeight > maxPageHeight) {
                     doc.addPage();
                     addHeader();
                 }
@@ -844,6 +855,7 @@
                 const itemBottomSpace = 4; // Space below the separator line
                 const spaceNeeded = textHeight + itemVerticalPadding + itemBottomSpace; 
 
+                // Check page break BEFORE drawing question content
                 checkPageBreak(spaceNeeded); 
 
                 // Print Q# and Module (using itemVerticalPadding + line height / 2 for visual center)
@@ -874,16 +886,16 @@
             
             // --- Signature Block Addition ---
             
-            const signatureBlockHeight = 30; // Space required for signature lines and labels
+            const signatureBlockHeight = 30; // Space required for signature lines and labels (30mm)
+            
+            // Check if there is enough space (currentY + 30mm buffer)
             checkPageBreak(signatureBlockHeight);
 
             const signatureLineY = currentY + 15;
             const signatureTextY = signatureLineY + 5;
-            const signatureLineLength = contentWidth / 2 - 5; // Half width minus space in the middle
+            const signatureLineLength = contentWidth / 2 - 5; // Half width minus 5mm space in the middle
 
-            currentY = signatureLineY;
-
-            // Assessor Signature Block (Left Side)
+            // Draw Assessor Signature Block (Left Side)
             doc.setLineWidth(0.5);
             doc.line(margin, signatureLineY, margin + signatureLineLength, signatureLineY);
             
@@ -891,12 +903,13 @@
             doc.setFont("helvetica", "normal");
             doc.text("Assessor Signature", margin + 2, signatureTextY);
             
-            // Candidate Signature Block (Right Side)
+            // Draw Candidate Signature Block (Right Side)
             const candidateX = pdfWidth - margin - signatureLineLength;
             doc.line(candidateX, signatureLineY, pdfWidth - margin, signatureLineY);
             
             doc.text("Candidate Signature", candidateX + 2, signatureTextY);
 
+            // currentY is updated just for consistency, though no more content follows
             currentY = signatureTextY + 5;
             
             // 6. Define filename and save
