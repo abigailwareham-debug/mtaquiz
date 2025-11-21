@@ -872,6 +872,33 @@
                 currentY += itemBottomSpace; // Space below separator line for next item
             });
             
+            // --- Signature Block Addition ---
+            
+            const signatureBlockHeight = 30; // Space required for signature lines and labels
+            checkPageBreak(signatureBlockHeight);
+
+            const signatureLineY = currentY + 15;
+            const signatureTextY = signatureLineY + 5;
+            const signatureLineLength = contentWidth / 2 - 5; // Half width minus space in the middle
+
+            currentY = signatureLineY;
+
+            // Assessor Signature Block (Left Side)
+            doc.setLineWidth(0.5);
+            doc.line(margin, signatureLineY, margin + signatureLineLength, signatureLineY);
+            
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text("Assessor Signature", margin + 2, signatureTextY);
+            
+            // Candidate Signature Block (Right Side)
+            const candidateX = pdfWidth - margin - signatureLineLength;
+            doc.line(candidateX, signatureLineY, pdfWidth - margin, signatureLineY);
+            
+            doc.text("Candidate Signature", candidateX + 2, signatureTextY);
+
+            currentY = signatureTextY + 5;
+            
             // 6. Define filename and save
             const sanitizedUserName = userName.replace(/[^a-z0-9]/gi, '_');
             const filename = `MTA_Assessment_${sanitizedUserName}_${new Date().toISOString().slice(0, 10)}.pdf`;
