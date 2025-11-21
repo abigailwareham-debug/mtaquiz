@@ -80,7 +80,7 @@
                         <input type="password" id="assessment-password" placeholder="Enter password to start" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-suffolk-red focus:border-suffolk-red shadow-sm text-slate-800" required>
                     </div>
 
-                    <p id="name-error" class="text-sm text-red-500 mt-1 hidden">Please enter your name and the correct password to begin.</p>
+                    <p id="name-error" class="text-sm text-red-500 mt-1 hidden">Please enter your name and ensure the password is correct.</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-10 text-left">
@@ -107,7 +107,7 @@
                     </div>
                 </div>
 
-                <!-- ADDED ID for Event Listener -->
+                <!-- FIXED: Removed inline onclick and added ID for JS event listener -->
                 <button id="start-btn" class="bg-suffolk-red hover-bg-suffolk-red text-white font-bold py-4 px-12 rounded shadow-lg transition-all transform hover:scale-105 flex items-center mx-auto">
                     Begin Assessment <i class="fas fa-chevron-right ml-3"></i>
                 </button>
@@ -144,6 +144,7 @@
             <div id="feedback-area" class="hidden bg-white rounded-xl shadow-md p-6 border-l-8 mb-6 fade-in">
                 <h4 id="feedback-title" class="text-lg font-bold mb-2">Correct!</h4>
                 <p id="feedback-text" class="text-slate-700 mb-4 leading-relaxed">Explanation text.</p>
+                <!-- Using inline onclick for next/reset buttons is safe because functions are defined before this element is parsed -->
                 <button id="next-btn" onclick="nextQuestion()" class="bg-slate-800 text-white px-8 py-3 rounded font-semibold hover:bg-slate-900 transition-colors shadow-md">
                     Next Question <i class="fas fa-arrow-right ml-2"></i>
                 </button>
@@ -440,7 +441,7 @@
         
         // Custom function to ensure crest loads from external URL
         function checkLocalCrest() {
-            const externalCrestPath = 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f1/Suffolk_Fire_and_Rescue_Service_crest.svg/2560px-Suffolk_Fire_and_Rescue_Service_crest.svg.png';
+            const externalCrestPath = 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f1/Suffolk_Fire_and_Rescue_Service_crest.svg/2560px-Suffolk_Fire_and-Rescue_Service_crest.svg.png';
             
             // Set the source directly for on-screen elements
             ui.headerLogo.src = externalCrestPath;
@@ -882,6 +883,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             checkLocalCrest();
             if (ui.startBtn) {
+                // FIXED: Use addEventListener instead of inline onclick attribute
                 ui.startBtn.addEventListener('click', startQuiz);
             }
         });
