@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suffolk Fire & Rescue - MTA Knowledge Check</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .option-card:hover { transform: translateY(-2px); }
+        
+        /* Suffolk Fire specific red accent */
+        .bg-suffolk-red { background-color: #b91c1c; }
+        .text-suffolk-red { color: #b91c1c; }
+        .border-suffolk-red { border-color: #b91c1c; }
+        .hover-bg-suffolk-red:hover { background-color: #991b1b; }
+
+        /* PDF Styling adjustments for print quality - IMPORTANT */
+        .pdf-capture-area {
+            /* This content is for screen rendering only, not direct capture */
+            display: none; 
+        }
+
+        /* Elements hidden on screen, visible only during PDF generation */
+        .pdf-only { 
+            display: none;
+        }
+    </style>
+    <!-- External Libraries for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 border-t-8 border-suffolk-red">
+
+    <!-- Main App Container -->
+    <div id="app" class="max-w-4xl mx-auto px-4 py-8 min-h-screen flex flex-col">
+        
+        <!-- Header with Logo -->
+        <header class="bg-white rounded-xl shadow-sm p-6 mb-6 flex flex-col md:flex-row justify-between items-center border-b-2 border-red-100">
+            <div class="flex items-center mb-4 md:mb-0">
+                <!-- Logo Implementation in Header (using reliable external URL) -->
+                <img id="header-logo" src="https://upload.wikimedia.org/wikipedia/en/thumb/f/f1/Suffolk_Fire_and_Rescue_Service_crest.svg/2560px-Suffolk_Fire_and_Rescue_Service_crest.svg.png" alt="Service Crest" class="h-24 w-auto mr-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900">MTA Knowledge Check</h1>
+                    <p class="text-sm font-semibold text-suffolk-red tracking-wide uppercase">Suffolk Fire & Rescue Service</p>
+                </div>
+            </div>
+            <div id="progress-container" class="hidden text-right">
+                <!-- FIXED: Now referencing current-q-display -->
+                <div class="text-3xl font-bold text-suffolk-red"><span id="current-q-display">1</span><span class="text-slate-300 text-xl mx-1">/</span><span id="total-q" class="text-slate-400 text-xl">13</span></div>
+                <div class="text-xs text-slate-400 uppercase tracking-wide font-bold">Question</div>
+            </div>
+        </header>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="bg-white rounded-xl shadow-lg p-8 text-center flex-grow flex flex-col justify-center items-center fade-in">
+            
+            <div class="w-full max-w-2xl mx-auto">
+                
+                <h2 class="text-3xl font-bold mb-4 text-slate-900">MTA Modules Assessment</h2>
+                <p class="text-slate-600 mb-6 max-w-lg mx-auto leading-relaxed">
+                    This assessment validates knowledge of <strong>Modules 26.1 through 28.1</strong>, focusing on call handling protocols for people at risk during terrorist attacks.
+                </p>
+
+                <!-- Name Input Field -->
+                <div class="w-full max-w-sm mx-auto mb-8 text-left">
+                    <label for="user-name" class="block text-sm font-medium text-slate-700 mb-1">Your Name (for evidence recording)</label>
+                    <input type="text" id="user-name" placeholder="e.g., Jane Doe" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-suffolk-red focus:border-suffolk-red shadow-sm text-slate-800" required>
+                    <p id="name-error" class="text-sm text-red-500 mt-1 hidden">Please enter your name to begin the assessment.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-10 text-left">
+                    <div class="bg-slate-50 p-5 rounded-lg border-l-4 border-suffolk-red shadow-sm">
+                        <h3 class="font-bold text-slate-900 mb-2 flex items-center">
+                            <i class="fas fa-crosshairs text-suffolk-red mr-2"></i> Key Objectives
+                        </h3>
+                        <ul class="text-sm text-slate-600 space-y-2">
+                            <!-- FIXED: Removed ** asterisks -->
+                            <li class="flex items-start"><span class="mr-2">•</span> Module 26: Situational Awareness & Sharing (26.1 - 26.4)</li>
+                            <li class="flex items-start"><span class="mr-2">•</span> Module 27: Survival Guidance ('Run Hide Tell') (27.1 - 27.9)</li>
+                            <li class="flex items-start"><span class="mr-2">•</span> Module 28: Assisting Rescue & Information Sharing (28.1)</li>
+                            <li class="flex items-start"><span class="mr-2">•</span> Total Modules Covered: 13 Learning Outcomes</li>
+                            <!-- END UPDATED LIST -->
+                        </ul>
+                    </div>
+                    <div class="bg-slate-50 p-5 rounded-lg border-l-4 border-yellow-500 shadow-sm">
+                        <h3 class="font-bold text-slate-900 mb-2 flex items-center">
+                            <i class="fas fa-info-circle text-yellow-600 mr-2"></i> Assessment Details
+                        </h3>
+                        <ul class="text-sm text-slate-600 space-y-2">
+                            <li><span class="mr-2">•</span> 13 Questions</li>
+                            <li><span class="mr-2">•</span> Instant feedback provided</li>
+                            <li><span class="mr-2">•</span> NOG reference links included</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <button onclick="startQuiz()" class="bg-suffolk-red hover-bg-suffolk-red text-white font-bold py-4 px-12 rounded shadow-lg transition-all transform hover:scale-105 flex items-center mx-auto">
+                    Begin Assessment <i class="fas fa-chevron-right ml-3"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden flex-col flex-grow fade-in">
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-200 rounded-full h-1.5 mb-8">
+                <div id="progress-bar" class="bg-suffolk-red h-1.5 rounded-full transition-all duration-500 shadow-md shadow-red-200" style="width: 0%"></div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden mb-6">
+                <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 flex justify-between items-center">
+                    <!-- Updated to show current question number / total questions -->
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Question <span id="current-q-display">1</span> of <span id="total-q-display">13</span></span>
+                    <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-1 rounded border border-yellow-200" id="module-tag">Module 26.1</span>
+                </div>
+                
+                <div class="p-6 md:p-10">
+                    <h3 id="question-text" class="text-xl md:text-2xl font-bold text-slate-900 mb-8 leading-snug">
+                        Question text goes here?
+                    </h3>
+
+                    <div id="options-container" class="space-y-3">
+                        <!-- Options injected via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback Area (Hidden initially) -->
+            <div id="feedback-area" class="hidden bg-white rounded-xl shadow-md p-6 border-l-8 mb-6 fade-in">
+                <h4 id="feedback-title" class="text-lg font-bold mb-2">Correct!</h4>
+                <p id="feedback-text" class="text-slate-700 mb-4 leading-relaxed">Explanation text.</p>
+                <button id="next-btn" onclick="nextQuestion()" class="bg-slate-800 text-white px-8 py-3 rounded font-semibold hover:bg-slate-900 transition-colors shadow-md">
+                    Next Question <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="hidden bg-white rounded-xl shadow-lg p-10 text-center flex-grow flex-col justify-center items-center fade-in">
+            
+            <!-- A simplified structure for PDF to capture the main summary info -->
+            <div id="pdf-summary-info">
+                <div class="flex items-center justify-between w-full max-w-2xl border-b pb-4 mb-6 border-slate-300">
+                    <!-- Removed Logo -->
+                    <div class="text-right">
+                        <h3 class="text-xl font-bold text-slate-900">MTA Modules Assessment Certificate</h3>
+                        <div id="pdf-timestamp" class="text-sm text-slate-500 mt-1"></div>
+                    </div>
+                </div>
+
+                <div id="score-icon" class="w-24 h-24 rounded-full flex items-center justify-center mb-6 text-5xl bg-slate-50 border-4 border-slate-100 mx-auto">
+                    🏆
+                </div>
+                
+                <h2 class="text-3xl font-bold mb-2 text-slate-900">Assessment Complete</h2>
+                <p class="text-slate-500 mb-8">Summary of your performance</p>
+
+                <!-- User Name Display -->
+                <div class="w-full max-w-md mx-auto mb-6 p-4 bg-slate-50 rounded-lg border-l-4 border-yellow-500">
+                    <span class="text-sm font-semibold text-slate-600 block">Assessment Completed By:</span>
+                    <span id="results-user-name" class="text-xl font-bold text-slate-900">Trainee</span>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4 w-full max-w-md mx-auto mb-8">
+                    <div class="bg-slate-50 p-4 rounded border border-slate-200">
+                        <div class="text-2xl font-bold text-suffolk-red" id="final-score">0%</div>
+                        <div class="text-xs text-slate-500 uppercase font-bold">Score</div>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded border border-slate-200">
+                        <div class="text-2xl font-bold text-slate-800" id="correct-count">0</div>
+                        <div class="text-xs text-slate-500 uppercase font-bold">Correct</div>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded border border-slate-200">
+                        <div class="text-2xl font-bold text-slate-800" id="total-count">0</div>
+                        <div class="text-xs text-slate-500 uppercase font-bold">Total</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Breakdown list remains visible but is handled differently in PDF generation -->
+            <div id="breakdown-display" class="w-full max-w-2xl bg-slate-50 rounded-lg border border-slate-200 p-6 mb-8 text-left">
+                <h3 class="font-bold text-slate-800 mb-4 border-b border-slate-300 pb-3">Module Breakdown</h3>
+                <div id="breakdown-list" class="space-y-3 text-sm pr-2">
+                    <!-- Breakdown injected via JS -->
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row justify-center gap-4 w-full max-w-md">
+                <button onclick="generatePDF()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded transition-all shadow-md flex items-center justify-center">
+                    <i class="fas fa-file-pdf mr-2"></i> Generate PDF Certificate
+                </button>
+                <button onclick="resetQuiz()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded transition-all shadow-md">
+                    Restart Assessment
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center text-slate-400 text-xs mt-8 pb-4">
+            <p>&copy; Suffolk Fire and Rescue Service Training Tool</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // Quiz Data based on MTA Modules.pdf and nog_document.pdf
+        const questions = [
+            {
+                id: 1,
+                module: "26.1",
+                question: "According to Module 26.1, which three methods should be used to gather sufficient situational awareness during terrorist attacks?",
+                options: [
+                    "Social media monitoring, Caller location, Police reports",
+                    "Professional judgement, Call prompts, Risk information",
+                    "CCTV footage, News reports, Caller testimony",
+                    "Supervisor advice, Standard Operating Procedures, Internet searches"
+                ],
+                correct: 1,
+                explanation: "The NOG document specifies that fire control personnel should use Professional judgement, Call prompts, and Risk information to gather situational awareness."
+            },
+            {
+                id: 2,
+                module: "26.2",
+                question: "When you have identified the nature of the immediate threat to people at risk, who must this be shared with?",
+                options: [
+                    "The media liaison officer only",
+                    "The Incident Commander and other agencies",
+                    "Only the police control room",
+                    "Internal supervisors only"
+                ],
+                correct: 1,
+                explanation: "Module 26.2 requires recording and sharing the nature of the immediate threat with the Incident Commander and other agencies."
+            },
+            {
+                id: 3,
+                module: "26.3 / 28.1",
+                question: "What three specific pieces of information about people at risk must be recorded and shared?",
+                options: [
+                    "Names, Ages, and Phone numbers",
+                    "Number, Location, and General Condition",
+                    "Gender, Clothing description, and Height",
+                    "Nationality, Language spoken, and Injury severity"
+                ],
+                correct: 1,
+                explanation: "Modules 26.3 and 28.1 explicitly list 'Number', 'Location', and 'General condition' as the key information to record and share."
+            },
+            {
+                id: 4,
+                module: "26.4",
+                question: "If a call ends prematurely and the caller is believed to be at risk, what is the required action?",
+                options: [
+                    "Immediately call the person back continuously until they answer",
+                    "Assume they are safe and close the log",
+                    "Record the info and share with the Incident Commander and other agencies",
+                    "Wait 10 minutes before taking action"
+                ],
+                correct: 2,
+                explanation: "Module 26.4 states you must record information about callers whose calls ended prematurely and share it with the Incident Commander and agencies. Re-contacting may be unsafe."
+            },
+            {
+                id: 5,
+                module: "27.1",
+                question: "Under the 'Run Hide Tell' guidance, what is the primary instruction if it is safe to do so?",
+                options: [
+                    "Stay where you are and wait for help",
+                    "Run to a place of safety",
+                    "Try to negotiate with the attackers",
+                    "Film the incident on your phone"
+                ],
+                correct: 1,
+                explanation: "Module 27.1 states: Tell people at risk during terrorist attacks to run to a place of safety, if it is safe to do so."
+            },
+            {
+                id: 6,
+                module: "27.2",
+                question: "If people are unable to run to a place of safety, what should they be told to do?",
+                options: [
+                    "Confront the attackers",
+                    "Hide from attackers",
+                    "Play dead",
+                    "Scream for help"
+                ],
+                correct: 1,
+                explanation: "Module 27.2 states: Tell people who are unable to run and who are at risk during a terrorist attack to hide from attackers."
+            },
+            {
+                id: 7,
+                module: "27.3",
+                question: "What specific physical security advice should be given to people who are hiding?",
+                options: [
+                    "Leave the door open slightly to hear what is happening",
+                    "Lock and barricade themselves in, if it is safe to do so",
+                    "Stand by the window to signal for help",
+                    "Block the door with their own bodies"
+                ],
+                correct: 1,
+                explanation: "Module 27.3 requires telling people to lock and barricade themselves in, if it is safe for them to do so."
+            },
+            {
+                id: 8,
+                module: "27.4",
+                question: "What instructions regarding mobile phones must be given to people hiding from attackers?",
+                options: [
+                    "Turn the phone off completely",
+                    "Keep the line open on speakerphone",
+                    "Switch to silent and turn off vibrating alerts",
+                    "Use the flash to signal location"
+                ],
+                correct: 2,
+                explanation: "Module 27.4 states: Switch their mobile phone to silent and turn off vibrating alerts."
+            },
+            {
+                id: 9,
+                module: "27.5", // Re-added missing question
+                question: "What is the primary psychological advice to give people when emergency responders are approaching?",
+                options: [
+                    "Remain as calm as possible and follow instructions",
+                    "Wait until responders signal they are safe to approach",
+                    "Shout out their names to identify themselves",
+                    "Tell responders about all the injuries immediately"
+                ],
+                correct: 0,
+                explanation: "Module 27.5 states to encourage people at risk to remain as calm as possible and follow the instructions of police officers and other emergency responders."
+            },
+            {
+                id: 10,
+                module: "27.6",
+                question: "To avoid being mistaken for a threat, what should people do with their hands when approaching responders?",
+                options: [
+                    "Keep them in their pockets",
+                    "Hold their mobile phone up high",
+                    "Keep hands in view and avoid sudden movements",
+                    "Wave them frantically"
+                ],
+                correct: 2,
+                explanation: "Module 27.6: Encourage people at risk to avoid sudden movements and keep their hands in view of approaching responders."
+            },
+            {
+                id: 11,
+                module: "27.7",
+                question: "How long should you attempt to maintain contact with a caller at risk?",
+                options: [
+                    "For exactly 5 minutes",
+                    "Until the police arrive at the scene",
+                    "Until they have run to a place of safety or are in the care of responders",
+                    "Until the call queue becomes too busy"
+                ],
+                correct: 2,
+                explanation: "Module 27.7: Maintain contact with the caller until they... have run to a place of safety or are in the care of emergency responders."
+            },
+            {
+                id: 12,
+                module: "27.8",
+                question: "Why must you continually reassess situational awareness during the call?",
+                options: [
+                    "To ensure advice given to protect people is relevant and up to date",
+                    "To fill out the incident log correctly",
+                    "To pass the time while waiting for police",
+                    "To evaluate the caller's emotional state"
+                ],
+                correct: 0,
+                explanation: "Module 27.8: Continually reassess situational awareness to ensure advice given to protect people at risk... is relevant and up to date."
+            },
+            {
+                id: 13,
+                module: "27.9",
+                question: "What should be done with calls about people requiring medical advice during a terrorist attack?",
+                options: [
+                    "Provide first aid advice yourself immediately",
+                    "Tell them to wait for the fire service",
+                    "Redirect to the ambulance service as soon as possible",
+                    "Tell them no medical help is available"
+                ],
+                correct: 2,
+                explanation: "Module 27.9: Redirect to the ambulance service as soon as possible calls about people requiring medical advice."
+            }
+        ];
+
+        // App State
+        let currentQuizQuestions; // Holds the shuffled version of questions
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswers = [];
+        let userName = '';
+        let completionTime = ''; // New state for completion timestamp
+
+        // DOM Elements
+        const screens = {
+            start: document.getElementById('start-screen'),
+            quiz: document.getElementById('quiz-screen'),
+            results: document.getElementById('results-screen')
+        };
+        
+        const ui = {
+            questionText: document.getElementById('question-text'),
+            optionsContainer: document.getElementById('options-container'),
+            moduleTag: document.getElementById('module-tag'),
+            progressBar: document.getElementById('progress-bar'),
+            currentQ: document.getElementById('current-q'),
+            totalQ: document.getElementById('total-q'),
+            progressContainer: document.getElementById('progress-container'),
+            feedbackArea: document.getElementById('feedback-area'),
+            feedbackTitle: document.getElementById('feedback-title'),
+            feedbackText: document.getElementById('feedback-text'),
+            nextBtn: document.getElementById('next-btn'),
+            userNameInput: document.getElementById('user-name'),
+            nameError: document.getElementById('name-error'),
+            resultsUserName: document.getElementById('results-user-name'),
+            pdfContent: document.getElementById('pdf-content'),
+            pdfTimestamp: document.getElementById('pdf-timestamp'),
+            breakdownList: document.getElementById('breakdown-list'),
+            headerLogo: document.getElementById('header-logo'),
+            pdfLogo: document.getElementById('pdf-logo'),
+            pdfSummaryInfo: document.getElementById('pdf-summary-info'), // Reference to the summary section
+            // New references for the question counter display
+            currentQDisplay: document.getElementById('current-q-display'),
+            totalQDisplay: document.getElementById('total-q-display')
+        };
+        
+        // --- Initialization and Crest Fix ---
+        
+        // Custom function to ensure crest loads from external URL
+        function checkLocalCrest() {
+            const externalCrestPath = 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f1/Suffolk_Fire_and_Rescue_Service_crest.svg/2560px-Suffolk_Fire_and_Rescue_Service_crest.svg.png';
+            
+            // Set the source directly for on-screen elements
+            ui.headerLogo.src = externalCrestPath;
+            // PDF logo element was removed from HTML
+        }
+
+        // Call the check function after the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', checkLocalCrest);
+
+        /**
+         * Shuffles an array of options and returns the new index of the correct answer.
+         * FIX: Now tracks the correct answer by text value, ensuring correct index update.
+         * @param {Array} array - The options array.
+         * @param {number} correctIndex - The original index of the correct answer.
+         * @returns {number} The new index of the correct answer.
+         */
+        function shuffleOptions(array, correctIndex) {
+            // Store the text of the correct answer before shuffling
+            const correctAnswerText = array[correctIndex];
+
+            // Standard Fisher-Yates shuffle
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+
+            // Find the new index of the correct answer text
+            // This is the CRUCIAL fix to ensure validation works after shuffling.
+            return array.indexOf(correctAnswerText);
+        }
+
+
+        // --- Quiz Logic ---
+        
+        function startQuiz() {
+            // 1. Validate Name
+            const enteredName = ui.userNameInput.value.trim();
+            if (enteredName === "") {
+                ui.nameError.classList.remove('hidden');
+                ui.userNameInput.focus();
+                return;
+            }
+            ui.nameError.classList.add('hidden');
+            userName = enteredName; // Store the name globally
+            
+            // 2. Initialize Quiz
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = [];
+            completionTime = ''; // Clear completion time
+
+            // NOTE: Must clone and reset questions to allow for re-shuffling on restart
+            currentQuizQuestions = JSON.parse(JSON.stringify(questions));
+            
+            // 3. UI Updates
+            screens.start.classList.add('hidden');
+            screens.quiz.classList.remove('hidden');
+            screens.quiz.classList.add('flex');
+            ui.progressContainer.classList.remove('hidden');
+            
+            // Set total question count
+            document.getElementById('total-q-display').textContent = currentQuizQuestions.length;
+            document.getElementById('total-q').textContent = currentQuizQuestions.length; // Also update the small counter on the right
+            
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = currentQuizQuestions[currentQuestionIndex];
+            
+            // SHUFFLE OPTIONS HERE - updates q.correct to the new index
+            q.correct = shuffleOptions(q.options, q.correct);
+            
+            // Reset UI
+            ui.feedbackArea.classList.add('hidden');
+            ui.optionsContainer.innerHTML = '';
+            ui.nextBtn.disabled = false;
+            
+            // Set Content
+            ui.questionText.textContent = q.question;
+            ui.moduleTag.textContent = `Module ${q.module}`;
+            
+            // FIX 1: Update Current Question Number Display
+            ui.currentQDisplay.textContent = currentQuestionIndex + 1; // Correctly updates the large question counter in the quiz screen
+            document.getElementById('current-q-display').textContent = currentQuestionIndex + 1; // Updates the banner counter
+            
+            // Update Progress Bar
+            const progress = ((currentQuestionIndex) / currentQuizQuestions.length) * 100;
+            ui.progressBar.style.width = `${progress}%`;
+
+            // Create Options
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = `option-card w-full text-left p-5 rounded-lg border border-slate-300 hover:border-suffolk-red hover:bg-red-50 transition-all duration-200 bg-white text-slate-700 font-medium shadow-sm`;
+                btn.innerHTML = `<div class="flex items-center"><div class="w-8 h-8 rounded bg-slate-100 text-slate-600 flex items-center justify-center mr-4 text-sm font-bold border border-slate-200">${String.fromCharCode(65 + index)}</div> ${opt}</div>`;
+                btn.onclick = () => checkAnswer(index, btn);
+                ui.optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIndex, btnElement) {
+            const q = currentQuizQuestions[currentQuestionIndex];
+            
+            // Validation now correctly uses the POST-SHUFFLE index stored in q.correct
+            const isCorrect = selectedIndex === q.correct; 
+            
+            // Disable all buttons
+            const allBtns = ui.optionsContainer.querySelectorAll('button');
+            allBtns.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.remove('hover:border-suffolk-red', 'hover:bg-red-50');
+                btn.classList.add('opacity-70', 'cursor-not-allowed');
+            });
+
+            // Highlight selected and correct
+            btnElement.classList.remove('opacity-70');
+            if (isCorrect) {
+                btnElement.classList.remove('border-slate-300');
+                btnElement.classList.add('border-green-600', 'bg-green-50', 'ring-1', 'ring-green-600');
+                btnElement.querySelector('.w-8').classList.add('bg-green-600', 'text-white', 'border-green-600');
+                score++;
+                showFeedback(true, q.explanation);
+            } else {
+                btnElement.classList.remove('border-slate-300');
+                btnElement.classList.add('border-red-600', 'bg-red-50', 'ring-1', 'ring-red-600');
+                btnElement.querySelector('.w-8').classList.add('bg-red-600', 'text-white', 'border-red-600');
+                
+                // Highlight the correct answer
+                const correctBtn = allBtns[q.correct];
+                correctBtn.classList.remove('opacity-70', 'border-slate-300');
+                correctBtn.classList.add('border-green-600', 'bg-green-50', 'ring-1', 'ring-green-600');
+                
+                showFeedback(false, q.explanation);
+            }
+
+            userAnswers.push({
+                question: q.question,
+                isCorrect: isCorrect,
+                module: q.module
+            });
+        }
+
+        function showFeedback(isCorrect, text) {
+            ui.feedbackArea.classList.remove('hidden');
+            ui.feedbackArea.classList.remove('border-green-500', 'border-red-500');
+            
+            if (isCorrect) {
+                ui.feedbackArea.classList.add('border-green-500');
+                ui.feedbackTitle.textContent = "Correct";
+                ui.feedbackTitle.className = "text-lg font-bold mb-2 text-green-700";
+            } else {
+                ui.feedbackArea.classList.add('border-red-500');
+                ui.feedbackTitle.textContent = "Incorrect";
+                ui.feedbackTitle.className = "text-lg font-bold mb-2 text-red-700";
+            }
+            
+            ui.feedbackText.textContent = text;
+
+            // Update button text if last question
+            if (currentQuestionIndex === currentQuizQuestions.length - 1) {
+                ui.nextBtn.innerHTML = `Finish Assessment <i class="fas fa-flag-checkered ml-2"></i>`;
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < currentQuizQuestions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            screens.quiz.classList.add('hidden');
+            screens.quiz.classList.remove('flex');
+            screens.results.classList.remove('hidden');
+            screens.results.classList.add('flex');
+            ui.progressContainer.classList.add('hidden');
+
+            // Set Completion Time
+            completionTime = new Date().toLocaleString('en-GB', { dateStyle: 'long', timeStyle: 'medium' });
+            ui.pdfTimestamp.textContent = `Completed: ${completionTime}`;
+
+            // Display User Name
+            ui.resultsUserName.textContent = userName;
+
+            const percentage = Math.round((score / currentQuizQuestions.length) * 100);
+            document.getElementById('final-score').textContent = `${percentage}%`;
+            document.getElementById('correct-count').textContent = score;
+            document.getElementById('total-count').textContent = currentQuizQuestions.length;
+
+            // Color code score
+            const iconDiv = document.getElementById('score-icon');
+            if (percentage >= 80) {
+                document.getElementById('final-score').classList.remove('text-suffolk-red', 'text-orange-500', 'text-red-600');
+                document.getElementById('final-score').classList.add('text-green-600');
+                iconDiv.innerHTML = '🏆';
+                iconDiv.className = "w-24 h-24 rounded-full flex items-center justify-center mb-6 text-5xl bg-green-50 border-4 border-green-200 fade-in mx-auto"; // Added mx-auto
+            } else if (percentage >= 50) {
+                document.getElementById('final-score').classList.remove('text-suffolk-red', 'text-green-600', 'text-red-600');
+                document.getElementById('final-score').classList.add('text-orange-500');
+                iconDiv.innerHTML = '📈';
+                iconDiv.className = "w-24 h-24 rounded-full flex items-center justify-center mb-6 text-5xl bg-orange-50 border-4 border-orange-200 fade-in mx-auto"; // Added mx-auto
+            } else {
+                document.getElementById('final-score').classList.remove('text-suffolk-red', 'text-green-600', 'text-orange-500');
+                document.getElementById('final-score').classList.add('text-red-600');
+                iconDiv.innerHTML = '⚠️';
+                iconDiv.className = "w-24 h-24 rounded-full flex items-center justify-center mb-6 text-5xl bg-red-50 border-4 border-red-200 fade-in mx-auto"; // Added mx-auto
+            }
+
+            // Generate Breakdown for Display
+            ui.breakdownList.innerHTML = '';
+            
+            userAnswers.forEach((ans, idx) => {
+                const item = document.createElement('div');
+                item.className = "flex items-start justify-between border-b border-slate-200 pb-3 last:border-0";
+                item.innerHTML = `
+                    <div>
+                        <span class="text-xs font-bold text-slate-400 block mb-1">Q${idx + 1} • Module ${ans.module}</span>
+                        <span class="text-slate-800 block text-sm font-medium leading-tight">${ans.question}</span>
+                    </div>
+                    <span class="${ans.isCorrect ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100'} font-bold text-xs px-2 py-1 rounded ml-3 whitespace-nowrap">
+                        ${ans.isCorrect ? '<i class="fas fa-check"></i> Pass' : '<i class="fas fa-times"></i> Fail'}
+                    </span>
+                `;
+                ui.breakdownList.appendChild(item);
+            });
+        }
+
+        function resetQuiz() {
+            screens.results.classList.add('hidden');
+            screens.results.classList.remove('flex');
+            ui.userNameInput.value = ''; // Clear name input on reset
+            ui.resultsUserName.textContent = '';
+            screens.start.classList.remove('hidden');
+        }
+
+        /**
+         * Generates a multi-page PDF certificate using jsPDF's built-in functions
+         * to draw text and calculated positions, avoiding html2canvas multi-page issues.
+         */
+        async function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+
+            // --- Configuration ---
+            const pdfWidth = 210; 
+            const margin = 20; // Side margins in mm
+            const contentWidth = pdfWidth - (margin * 2); // 170mm
+            const startY = 15; // Starting Y position for content
+            const maxPageHeight = 297 - (margin + 10); // Effective bottom boundary
+
+            // --- Helper Functions ---
+            let currentY = startY;
+            let pageNum = 0;
+            const centerX = pdfWidth / 2;
+            const suffolkRed = [185, 28, 28]; // #b91c1c
+
+            const addHeader = () => {
+                pageNum++;
+                
+                // Reset Y position for new page content
+                currentY = startY; 
+                
+                // 1. Draw Centered Title Block
+                
+                doc.setFontSize(16); 
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(suffolkRed[0], suffolkRed[1], suffolkRed[2]); 
+                doc.text("SUFFOLK FIRE & RESCUE SERVICE", centerX, currentY, null, null, 'center');
+                
+                currentY += 8;
+                doc.setFontSize(12);
+                doc.text("MTA Modules Assessment Certificate", centerX, currentY, null, null, 'center');
+                
+                // 2. Completion Details Block (Centered)
+                doc.setTextColor(0, 0, 0); 
+                currentY += 8;
+
+                doc.setFontSize(11);
+                doc.setFont("helvetica", "normal");
+                
+                const traineeLabel = `Trainee: ${userName}`;
+                const dateLabel = `Date: ${completionTime}`;
+
+                doc.text(traineeLabel, centerX, currentY, null, null, 'center');
+                currentY += 6;
+                doc.text(dateLabel, centerX, currentY, null, null, 'center');
+                
+                currentY += 8; // Spacing after block
+
+                // Separator line (Red accent)
+                doc.setDrawColor(suffolkRed[0], suffolkRed[1], suffolkRed[2]); 
+                doc.setLineWidth(0.8);
+                doc.line(margin, currentY, pdfWidth - margin, currentY); 
+                doc.setDrawColor(0, 0, 0); // Reset line color
+                currentY += 8; // Spacing after line
+                
+                // Page Number (remains right-aligned)
+                doc.setFontSize(10);
+                doc.text(`Page ${pageNum}`, pdfWidth - margin, 297 - 10, null, null, 'right');
+            };
+
+            const checkPageBreak = (spaceNeeded) => {
+                if (currentY + spaceNeeded > maxPageHeight) {
+                    doc.addPage();
+                    addHeader();
+                }
+            };
+            
+            // --- Content Generation (Summary - Page 1) ---
+            addHeader(); 
+
+            // Score Summary 
+            doc.setFontSize(14); 
+            doc.setFont("helvetica", "bold");
+            doc.text("Assessment Summary:", margin, currentY);
+
+            currentY += 8;
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "normal");
+            const totalQuestions = currentQuizQuestions.length;
+            const correctCount = score;
+            const percentage = Math.round((score / totalQuestions) * 100);
+            
+            // Set final score color based on percentage
+            let finalScoreColor;
+            if (percentage >= 80) { finalScoreColor = [0, 128, 0]; } // Green
+            else if (percentage >= 50) { finalScoreColor = [255, 165, 0]; } // Orange
+            else { finalScoreColor = [255, 0, 0]; } // Red
+
+            doc.text(`Trainee: ${userName}`, margin, currentY); currentY += 6;
+            doc.text(`Total Questions: ${totalQuestions}`, margin, currentY); currentY += 6;
+            doc.text(`Correct Answers: ${correctCount}`, margin, currentY); currentY += 6;
+            
+            doc.setFont("helvetica", "bold");
+            doc.text(`Final Score:`, margin, currentY);
+            doc.setTextColor(finalScoreColor[0], finalScoreColor[1], finalScoreColor[2]);
+            doc.text(`${percentage}%`, margin + 30, currentY); 
+            doc.setTextColor(0, 0, 0); // Reset color
+            doc.setFont("helvetica", "normal");
+            currentY += 12;
+            
+            // Start Breakdown
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.text("Detailed Module Breakdown:", margin, currentY); currentY += 8; 
+            
+            doc.setLineWidth(0.1);
+            doc.line(margin, currentY, pdfWidth - margin, currentY); currentY += 5; 
+            
+            // Breakdown Header
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "bold");
+            doc.text("Q#", margin + 2, currentY);
+            doc.text("Module", margin + 17, currentY);
+            doc.text("Question Text", margin + 40, currentY);
+            doc.text("Result", pdfWidth - margin, currentY, null, null, 'right');
+            currentY += 6; 
+            doc.line(margin, currentY, pdfWidth - margin, currentY); currentY += 4; 
+
+            // --- Detailed Breakdown (Multi-page handling) ---
+            
+            userAnswers.forEach((ans, idx) => {
+                const questionText = ans.question;
+                
+                doc.setFontSize(10); 
+                doc.setFont("helvetica", "normal");
+
+                // Content width for question text is 170 (total) - 65 (columns) = 105mm used here
+                const textColWidth = contentWidth - 65; 
+                const splitText = doc.splitTextToSize(questionText, textColWidth); 
+                
+                // Height calculation: 10pt font with generous line spacing (5mm per line)
+                const textLineHeight = 5; 
+                const textHeight = splitText.length * textLineHeight; 
+                const itemVerticalPadding = 3; // Padding above text
+                const itemBottomSpace = 4; // Space below the separator line
+                const spaceNeeded = textHeight + itemVerticalPadding + itemBottomSpace; 
+
+                checkPageBreak(spaceNeeded); 
+
+                // Print Q# and Module (using itemVerticalPadding + line height / 2 for visual center)
+                const textY = currentY + itemVerticalPadding + (textLineHeight / 2);
+
+                doc.text(`${idx + 1}`, margin + 2, textY); 
+                doc.text(ans.module, margin + 17, textY); 
+
+                // Print Question Text (multi-line)
+                doc.text(splitText, margin + 40, currentY + itemVerticalPadding);
+                
+                // Print Result (one line)
+                const resultText = ans.isCorrect ? "PASS" : "FAIL";
+                const resultColor = ans.isCorrect ? [0, 128, 0] : [255, 0, 0]; 
+                doc.setTextColor(resultColor[0], resultColor[1], resultColor[2]);
+                doc.setFont("helvetica", "bold");
+                doc.text(resultText, pdfWidth - margin, textY, null, null, 'right'); 
+                doc.setTextColor(0, 0, 0); // Reset color
+                doc.setFont("helvetica", "normal");
+
+                // Update Y position (must account for text height)
+                currentY += textHeight + itemVerticalPadding; 
+
+                doc.setLineWidth(0.1);
+                doc.line(margin, currentY, pdfWidth - margin, currentY); // Separator line for questions
+                currentY += itemBottomSpace; // Space below separator line for next item
+            });
+            
+            // 6. Define filename and save
+            const sanitizedUserName = userName.replace(/[^a-z0-9]/gi, '_');
+            const filename = `MTA_Assessment_${sanitizedUserName}_${new Date().toISOString().slice(0, 10)}.pdf`;
+            doc.save(filename);
+        }
+
+    </script>
+</body>
+</html>
